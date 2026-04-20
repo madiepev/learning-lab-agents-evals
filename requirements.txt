@@ -3,3 +3,4 @@ azure-ai-projects>=1.0.0
 python-dotenv>=1.0.0
 sentence-transformers>=3.0.0
 bert-score>=0.3.13
+flask>=3.0.0
