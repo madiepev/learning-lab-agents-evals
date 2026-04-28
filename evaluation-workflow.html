@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Evaluation Workflow — Learning Lab Agents</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      min-height: 100vh;
+      padding: 48px 24px 64px;
+    }
+
+    header {
+      max-width: 860px;
+      margin: 0 auto 52px;
+    }
+
+    header .eyebrow {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #7c3aed;
+      margin-bottom: 10px;
+    }
+
+    header h1 {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+
+    header p {
+      font-size: 15px;
+      color: #555;
+      max-width: 640px;
+      line-height: 1.65;
+    }
+
+    /* ── Flow ── */
+    .flow {
+      max-width: 860px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .step {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    /* connector column */
+    .step-spine {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+      width: 48px;
+    }
+
+    .step-dot {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+      border: 2px solid transparent;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-line {
+      width: 2px;
+      flex: 1;
+      min-height: 32px;
+      background: #e0e0e0;
+    }
+
+    .step-line-branch {
+      background: repeating-linear-gradient(
+        to bottom,
+        #d0d0d0 0px,
+        #d0d0d0 6px,
+        transparent 6px,
+        transparent 12px
+      );
+    }
+
+    /* card */
+    .step-card {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 14px;
+      padding: 22px 24px;
+      flex: 1;
+      margin-bottom: 16px;
+    }
+
+    .step-card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    }
+
+    .step-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 6px;
+    }
+
+    .step-card h2 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .step-card p {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.65;
+    }
+
+    .step-card p + p { margin-top: 8px; }
+
+    .detail-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .pill {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    /* Branch wrapper for parallel steps */
+    .branch-wrapper {
+      max-width: 860px;
+      margin: 0 auto 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding-left: 72px; /* align with cards above */
+    }
+
+    .branch-card {
+      background: #fff;
+      border: 1px solid #e5e5e5;
+      border-radius: 14px;
+      padding: 20px 22px;
+    }
+
+    .branch-card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    }
+
+    .branch-card h3 {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .branch-card p {
+      font-size: 13.5px;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .branch-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 8px;
+    }
+
+    .irr-note {
+      background: #faf5ff;
+      border: 1px solid #e9d5ff;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #5b21b6;
+      margin-top: 12px;
+      line-height: 1.55;
+    }
+
+    .irr-note strong { font-weight: 700; }
+
+    /* colour themes */
+    /* slate — test dataset */
+    .dot-slate  { background: #f3f4f6; border-color: #9ca3af; }
+    .label-slate { color: #6b7280; }
+    .pill-slate  { background: #f3f4f6; color: #374151; }
+
+    /* purple — smoke test */
+    .dot-purple  { background: #f3f0ff; border-color: #7c3aed; }
+    .label-purple { color: #7c3aed; }
+    .pill-purple  { background: #ede9fe; color: #5b21b6; }
+    .card-purple  { border-color: #ddd6fe; }
+
+    /* blue — auto eval */
+    .dot-blue   { background: #eff6ff; border-color: #2563eb; }
+    .label-blue  { color: #2563eb; }
+    .pill-blue   { background: #dbeafe; color: #1d4ed8; }
+    .card-blue   { border-color: #bfdbfe; }
+
+    /* green — human eval */
+    .dot-green  { background: #f0fdf4; border-color: #16a34a; }
+    .label-green { color: #16a34a; }
+    .pill-green  { background: #dcfce7; color: #166534; }
+    .card-green  { border-color: #bbf7d0; }
+
+    /* amber — outcome */
+    .dot-amber  { background: #fffbeb; border-color: #d97706; }
+    .label-amber { color: #d97706; }
+    .pill-amber  { background: #fef3c7; color: #92400e; }
+
+    /* branch section label */
+    .branch-section-label {
+      max-width: 860px;
+      margin: 0 auto 12px;
+      padding-left: 72px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: #999;
+    }
+
+    .branch-connector {
+      max-width: 860px;
+      margin: 0 auto;
+      padding-left: 72px;
+      display: flex;
+      gap: 16px;
+      margin-bottom: 0;
+    }
+
+    .branch-line {
+      flex: 1;
+      height: 2px;
+      background: #e0e0e0;
+      position: relative;
+      top: 0;
+    }
+
+    footer {
+      max-width: 860px;
+      margin: 52px auto 0;
+      font-size: 13px;
+      color: #aaa;
+      text-align: center;
+    }
+
+    a { color: #2563eb; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <p class="eyebrow">Learning Lab Agents — Evals</p>
+    <h1>Evaluation Workflow</h1>
+    <p>End-to-end flow for improving smoke tests, collecting agent responses, running human and automated scoring, and comparing agreement per agent.</p>
+  </header>
+
+  <div class="flow">
+
+    <!-- Step 1: Define smoke test inputs -->
+    <div class="step">
+      <div class="step-spine">
+        <div class="step-dot dot-slate">🗄️</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-card">
+        <p class="step-label label-slate">Foundation</p>
+        <h2>Define better smoke test inputs</h2>
+        <p>MJ updates the smoke-test dataset so each query is explicit, scoped, and easy to score. Prompts should make expected product naming clear and cover representative agent behaviors.</p>
+        <div class="detail-pills">
+          <span class="pill pill-slate">Clear query intent</span>
+          <span class="pill pill-slate">Expected product naming</span>
+          <span class="pill pill-slate">smoke-test.jsonl</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Generate responses -->
+    <div class="step">
+      <div class="step-spine">
+        <div class="step-dot dot-purple">💨</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-card card-purple">
+        <p class="step-label label-purple">Run all agents</p>
+        <h2>Generate agent answers for the defined inputs</h2>
+        <p>Each agent responds to the updated smoke-test prompts. Outputs are stored as agent-specific result files and become the single source used by both human and automated evaluation.</p>
+        <div class="detail-pills">
+          <span class="pill pill-purple">One results file per agent</span>
+          <span class="pill pill-purple">Query + response pairs</span>
+          <span class="pill pill-purple">Ready for scoring</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Define rubric and answer model -->
+    <div class="step">
+      <div class="step-spine">
+        <div class="step-dot dot-blue">⚙️</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-card card-blue">
+        <p class="step-label label-blue">Calibration</p>
+        <h2>Create rubric with examples (antwoordmodel)</h2>
+        <p>Define clear scoring guidance with positive and negative examples so humans score consistently. The rubric includes one binary metric and three instructional design metrics from the app.</p>
+        <div class="detail-pills">
+          <span class="pill pill-blue">Product name accuracy: correct / incorrect</span>
+          <span class="pill pill-blue">Appropriate level (1-3)</span>
+          <span class="pill pill-blue">Logical progression (1-3)</span>
+          <span class="pill pill-blue">Helpfulness (1-3)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Human rating in app -->
+    <div class="step">
+      <div class="step-spine">
+        <div class="step-dot dot-green">🧑‍⚖️</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="step-card card-green">
+        <p class="step-label label-green">Human evaluation app</p>
+        <h2>Rate outputs one by one per agent</h2>
+        <p>Evaluators use Ivor's human evaluation app to score each response for one agent at a time. This keeps context stable and improves consistency across ratings.</p>
+        <div class="detail-pills">
+          <span class="pill pill-green">Single-agent review sessions</span>
+          <span class="pill pill-green">One response at a time</span>
+          <span class="pill pill-green">Structured rubric inputs</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Parallel branch: auto eval and human eval analysis -->
+  <div class="branch-section-label">After responses are available</div>
+
+  <div class="branch-wrapper">
+
+    <!-- Branch A: automated product-name evaluation -->
+    <div class="branch-card card-blue">
+      <p class="branch-label label-blue">Automated output</p>
+      <h3>Auto-evaluate product name accuracy</h3>
+      <p>A dedicated script checks whether required product names are correct for each response. It outputs binary scores and per-agent aggregates.</p>
+    </div>
+
+    <!-- Branch B: compare human and automated -->
+    <div class="branch-card card-green">
+      <p class="branch-label label-green">Agreement analysis</p>
+      <h3>Compare human vs auto ratings</h3>
+      <p>Human product-name scores are compared with automated scores to measure inter-rater reliability and identify mismatches in the scoring logic or rubric interpretation.</p>
+      <div class="irr-note">
+        <strong>Primary reliability metric:</strong> Cohen's Kappa on product name accuracy (correct/incorrect), reported per agent and overall.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Step 5: Outcome -->
+  <div class="flow">
+    <div class="step">
+      <div class="step-spine">
+        <div class="step-dot dot-amber">📊</div>
+      </div>
+      <div class="step-card">
+        <p class="step-label label-amber">Outcome</p>
+        <h2>Visualize metrics per agent in this repo</h2>
+        <p>Publish comparable views for each agent: product-name accuracy, instructional design scores, and human-vs-auto agreement. Use these views to iterate on prompts, rubric examples, and agent instructions.</p>
+        <div class="detail-pills">
+          <span class="pill pill-amber">Per-agent dashboards</span>
+          <span class="pill pill-amber">Human + auto comparison</span>
+          <span class="pill pill-amber">Rubric refinement loop</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Learning Lab Agents Evals &mdash; last updated April 2026 &nbsp;·&nbsp;
+    <a href="evaluation-dimensions.html">Evaluation dimensions</a>
+  </footer>
+
+</body>
+</html>
