@@ -61,9 +61,7 @@ for var_name, var_val in [("AGENT_FILE", AGENT_FILE), ("TEST_FILE", TEST_FILE), 
 # Model name mapping from .agent.md declarations to Azure AI Foundry deployment names
 MODEL_MAP = {
     "claude sonnet 4.6 (copilot)": "claude-sonnet-4-6",
-    "claude sonnet 4.5 (copilot)": "claude-sonnet-4-5",
     "claude sonnet 4.6": "claude-sonnet-4-6",
-    "claude sonnet 4.5": "claude-sonnet-4-5",
 }
 
 # Tools that are VS Code-specific and cannot be replicated outside the IDE

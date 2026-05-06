@@ -1,6 +1,6 @@
 ---
 description: Writes core learning content for Microsoft Learn units with focus on instructional quality and narrative flow
-model: Claude Sonnet 4.5 (copilot)
+model: Claude Sonnet 4.6 (copilot)
 tools: ['edit', 'search']
 ---
 
