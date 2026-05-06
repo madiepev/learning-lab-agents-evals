@@ -35,7 +35,9 @@ Use grep_search to find all modules authored by the specified person:
 
 ```
 grep_search pattern: "ms.author: [author-name]"
-include pattern: "learn-pr/*/index.yml"
+include pattern: "**/index.yml"
+maxResults: 500
+includeIgnoredFiles: true
 ```
 
 This returns all index.yml files where the author is listed.
@@ -133,7 +135,7 @@ Output a markdown report with:
 **User asks:** "Generate freshness report for theresai"
 
 **You do:**
-1. Search: `grep_search("ms.author: theresai", include: "learn-pr/*/index.yml")`
+1. Search: `grep_search("ms.author: theresai", include: "**/index.yml", maxResults: 500, includeIgnoredFiles: true)`
 2. Read each index.yml to get title and ms.date
 3. Calculate age and status for each module
 4. Generate markdown report sorted by age
