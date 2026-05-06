@@ -19,6 +19,10 @@ on:
         description: "Upload results to Microsoft Foundry for cloud evaluation"
         type: boolean
         default: false
+      model_override:
+        description: "Override model (leave empty to use agent's declared model)"
+        required: false
+        default: ""
 
 jobs:
   evaluate:
@@ -52,13 +56,13 @@ jobs:
         if: ${{ github.event.inputs.run_all != 'true' }}
         env:
           FOUNDRY_PROJECT_ENDPOINT: ${{ secrets.FOUNDRY_PROJECT_ENDPOINT }}
-          MODEL_NAME: ${{ vars.MODEL_NAME || 'gpt-4.1' }}
+          MODEL_OVERRIDE: ${{ github.event.inputs.model_override }}
           TEST_FILE: ${{ github.event.inputs.test_file }}
           AGENT_FILE: ${{ github.event.inputs.agent_file }}
         run: |
           AGENT_NAME=$(basename "$AGENT_FILE" .agent.md)
           export RESULTS_FILE="evaluation/data/technical-accuracy-results/smoke-test-results-${AGENT_NAME}.jsonl"
-          python evaluation/scripts/run_eval.py
+          python evaluation/scripts/run_eval_agentic.py
           echo "RESULTS_FILE=${RESULTS_FILE}" >> "$GITHUB_ENV"
 
       - name: Score responses (single agent)
@@ -74,6 +78,7 @@ jobs:
         if: ${{ github.event.inputs.run_all == 'true' }}
         env:
           FOUNDRY_PROJECT_ENDPOINT: ${{ secrets.FOUNDRY_PROJECT_ENDPOINT }}
+          MODEL_OVERRIDE: ${{ github.event.inputs.model_override }}
           MODEL_NAME: ${{ vars.MODEL_NAME || 'gpt-4.1' }}
           TEST_FILE: ${{ github.event.inputs.test_file }}
         run: |
@@ -95,7 +100,7 @@ jobs:
             export AGENT_FILE
             export RESULTS_FILE="evaluation/data/technical-accuracy-results/smoke-test-results-${AGENT_NAME}.jsonl"
 
-            python evaluation/scripts/run_eval.py
+            python evaluation/scripts/run_eval_agentic.py
             python evaluation/scripts/compare.py || FAILED=1
           done
 
