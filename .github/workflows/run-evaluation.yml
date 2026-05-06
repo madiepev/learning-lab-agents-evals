@@ -20,7 +20,7 @@ on:
         type: boolean
         default: false
       model_override:
-        description: "Override model (leave empty to use agent's declared model)"
+        description: "Override model (leave empty to use default openai/gpt-4.1)"
         required: false
         default: ""
 
@@ -30,7 +30,7 @@ jobs:
 
     permissions:
       contents: write
-      id-token: write
+      models: read
 
     steps:
       - name: Checkout
@@ -44,18 +44,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
       # --- Single agent mode ---
       - name: Generate responses (single agent)
         if: ${{ github.event.inputs.run_all != 'true' }}
         env:
-          FOUNDRY_PROJECT_ENDPOINT: ${{ secrets.FOUNDRY_PROJECT_ENDPOINT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MODEL_OVERRIDE: ${{ github.event.inputs.model_override }}
           TEST_FILE: ${{ github.event.inputs.test_file }}
           AGENT_FILE: ${{ github.event.inputs.agent_file }}
@@ -68,8 +61,7 @@ jobs:
       - name: Score responses (single agent)
         if: ${{ github.event.inputs.run_all != 'true' }}
         env:
-          FOUNDRY_PROJECT_ENDPOINT: ${{ secrets.FOUNDRY_PROJECT_ENDPOINT }}
-          MODEL_NAME: ${{ vars.MODEL_NAME || 'gpt-4.1' }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RESULTS_FILE: ${{ env.RESULTS_FILE }}
         run: python evaluation/scripts/compare.py
 
@@ -77,9 +69,8 @@ jobs:
       - name: Evaluate all agents
         if: ${{ github.event.inputs.run_all == 'true' }}
         env:
-          FOUNDRY_PROJECT_ENDPOINT: ${{ secrets.FOUNDRY_PROJECT_ENDPOINT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MODEL_OVERRIDE: ${{ github.event.inputs.model_override }}
-          MODEL_NAME: ${{ vars.MODEL_NAME || 'gpt-4.1' }}
           TEST_FILE: ${{ github.event.inputs.test_file }}
         run: |
           FAILED=0
@@ -119,6 +110,14 @@ jobs:
           git push
 
       # --- Optional: Foundry cloud evaluation ---
+      - name: Azure Login
+        if: ${{ github.event.inputs.run_foundry == 'true' }}
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
       - name: Run Foundry cloud evaluation
         if: ${{ github.event.inputs.run_foundry == 'true' }}
         env:

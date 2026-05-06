@@ -4,20 +4,19 @@ Agentic evaluation harness for .agent.md agents.
 Runs agents realistically by:
 1. Parsing .agent.md frontmatter to extract system prompt, model, and tools
 2. Connecting to MCP servers (Microsoft Learn, Microsoft Docs) via HTTP
-3. Implementing a tool-calling loop with the declared model via Azure AI Foundry
+3. Implementing a tool-calling loop with the declared model via GitHub Models
 4. Capturing the final response for scoring
 
 Environment variables:
-    FOUNDRY_PROJECT_ENDPOINT – Azure AI Foundry project endpoint
+    GITHUB_TOKEN             – GitHub token with models:read permission
     AGENT_FILE               – path to the agent .agent.md file
     TEST_FILE                – path to the test JSONL file
     RESULTS_FILE             – path to write the results JSONL
-    MODEL_OVERRIDE           – (optional) override model from agent frontmatter
+    MODEL_OVERRIDE           – (optional) override model, default: openai/gpt-4.1
     MCP_ENDPOINT             – (optional) MCP server URL, default: https://learn.microsoft.com/api/mcp
     MAX_TOOL_ROUNDS          – (optional) max tool-call rounds per query, default: 10
 
-Authentication uses DefaultAzureCredential (managed identity in CI,
-az login / VS Code locally).
+Authentication uses GITHUB_TOKEN for GitHub Models inference.
 """
 
 import asyncio
@@ -27,8 +26,7 @@ import sys
 from pathlib import Path
 
 import yaml
-from azure.identity import DefaultAzureCredential
-from azure.ai.projects import AIProjectClient
+from openai import OpenAI
 from mcp import ClientSession
 
 # Handle MCP SDK version differences for streamable HTTP client
@@ -41,7 +39,7 @@ except ImportError:
 # Configuration
 # ---------------------------------------------------------------------------
 
-ENDPOINT = os.environ.get("FOUNDRY_PROJECT_ENDPOINT")
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 AGENT_FILE = os.environ.get("AGENT_FILE")
 TEST_FILE = os.environ.get("TEST_FILE")
 RESULTS_FILE = os.environ.get("RESULTS_FILE")
@@ -49,8 +47,8 @@ MODEL_OVERRIDE = os.environ.get("MODEL_OVERRIDE")
 MCP_ENDPOINT = os.environ.get("MCP_ENDPOINT", "https://learn.microsoft.com/api/mcp")
 MAX_TOOL_ROUNDS = int(os.environ.get("MAX_TOOL_ROUNDS", "10"))
 
-if not ENDPOINT:
-    print("ERROR: FOUNDRY_PROJECT_ENDPOINT is not set.")
+if not GITHUB_TOKEN:
+    print("ERROR: GITHUB_TOKEN is not set.")
     sys.exit(1)
 
 for var_name, var_val in [("AGENT_FILE", AGENT_FILE), ("TEST_FILE", TEST_FILE), ("RESULTS_FILE", RESULTS_FILE)]:
@@ -58,11 +56,8 @@ for var_name, var_val in [("AGENT_FILE", AGENT_FILE), ("TEST_FILE", TEST_FILE), 
         print(f"ERROR: {var_name} is not set.")
         sys.exit(1)
 
-# Model name mapping from .agent.md declarations to Azure AI Foundry deployment names
-MODEL_MAP = {
-    "claude sonnet 4.6 (copilot)": "claude-sonnet-4-6",
-    "claude sonnet 4.6": "claude-sonnet-4-6",
-}
+# Default model on GitHub Models (best comparable to Claude Sonnet 4.6)
+DEFAULT_MODEL = "openai/gpt-4.1"
 
 # Tools that are VS Code-specific and cannot be replicated outside the IDE
 STUB_TOOLS = {"vscode/askQuestions", "edit", "execute", "execute/createAndRunTask",
@@ -97,12 +92,10 @@ def parse_agent_file(agent_path: str) -> dict:
 
 
 def resolve_model(agent_model: str) -> str:
-    """Resolve agent model declaration to a Foundry deployment name."""
+    """Resolve agent model declaration to a GitHub Models model name."""
     if MODEL_OVERRIDE:
         return MODEL_OVERRIDE
-    if not agent_model:
-        return "claude-sonnet-4-6"
-    return MODEL_MAP.get(agent_model.lower().strip(), "claude-sonnet-4-6")
+    return DEFAULT_MODEL
 
 
 def needs_mcp(tools: list) -> bool:
@@ -268,12 +261,11 @@ async def main() -> None:
     print(f"Test items: {len(test_items)}")
     print()
 
-    # Set up Azure AI Foundry client
-    project_client = AIProjectClient(
-        endpoint=ENDPOINT,
-        credential=DefaultAzureCredential(),
+    # Set up GitHub Models client (OpenAI-compatible)
+    client = OpenAI(
+        base_url="https://models.github.ai/inference",
+        api_key=GITHUB_TOKEN,
     )
-    client = project_client.get_openai_client()
 
     # Determine if we need MCP
     use_mcp = needs_mcp(agent["tools"])

@@ -5,12 +5,9 @@ Reads a results JSONL (query + response + ground_truth), scores each item
 on accuracy, completeness, and tone, and writes a markdown report.
 
 Environment variables:
-    FOUNDRY_PROJECT_ENDPOINT – Microsoft Foundry project endpoint
-    RESULTS_FILE             – path to the results JSONL to score
-    MODEL_NAME               – (optional) deployed model name, default: gpt-4.1
-
-Authentication uses DefaultAzureCredential (managed identity in CI,
-az login / VS Code locally).
+    GITHUB_TOKEN  – GitHub token with models:read permission
+    RESULTS_FILE  – path to the results JSONL to score
+    MODEL_NAME    – (optional) GitHub Models model name, default: openai/gpt-4.1
 """
 
 import json
@@ -18,19 +15,18 @@ import os
 import re
 import sys
 from pathlib import Path
-from azure.identity import DefaultAzureCredential
-from azure.ai.projects import AIProjectClient
+from openai import OpenAI
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 
-ENDPOINT = os.environ.get("FOUNDRY_PROJECT_ENDPOINT")
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 RESULTS_FILE = os.environ.get("RESULTS_FILE")
-MODEL_NAME = os.environ.get("MODEL_NAME", "gpt-4.1")
+MODEL_NAME = os.environ.get("MODEL_NAME", "openai/gpt-4.1")
 
-if not ENDPOINT:
-    print("ERROR: FOUNDRY_PROJECT_ENDPOINT is not set.")
+if not GITHUB_TOKEN:
+    print("ERROR: GITHUB_TOKEN is not set.")
     sys.exit(1)
 
 if not RESULTS_FILE:
@@ -112,11 +108,11 @@ def main() -> None:
     agent_name = extract_agent_name(RESULTS_FILE)
     print(f"Agent name: {agent_name}")
 
-    project_client = AIProjectClient(
-        endpoint=ENDPOINT,
-        credential=DefaultAzureCredential(),
+    # Set up GitHub Models client (OpenAI-compatible)
+    client = OpenAI(
+        base_url="https://models.github.ai/inference",
+        api_key=GITHUB_TOKEN,
     )
-    client = project_client.get_openai_client()
 
     scores = []
     for i, item in enumerate(results, 1):
