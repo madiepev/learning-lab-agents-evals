@@ -104,9 +104,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase
           git add evaluation/data/technical-accuracy-results/ reports/
           git diff --cached --quiet || git commit -m "chore: add evaluation results [skip ci]"
+          git pull --rebase
           git push
 
       # --- Optional: Foundry cloud evaluation ---
