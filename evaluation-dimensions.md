@@ -4,7 +4,7 @@ Four dimensions are used to assess the quality of agent-generated learning conte
 
 ## 1. Instructional design
 
-This dimension evaluates whether the content follows sound learning principles: appropriate level, logical progression of ideas, and genuine helpfulness for the learner. Each metric is rated on a 1-3 scale.
+This dimension evaluates whether the content follows sound learning principles: appropriate level, logical progression of ideas, and genuine helpfulness for the learner. Each metric is rated on a 1-5 scale.
 
 ### Metrics
 
@@ -13,26 +13,32 @@ This dimension evaluates whether the content follows sound learning principles: 
 | Score | Meaning |
 | --- | --- |
 | 1 | Too basic or too advanced |
-| 2 | Mostly on level |
-| 3 | Perfectly pitched |
+| 2 | Often mismatched to learner level, with frequent over- or under-explanation |
+| 3 | Mostly on level, with occasional mismatch in depth or assumed prior knowledge |
+| 4 | Well matched to learner level, with only minor gaps in depth or scaffolding |
+| 5 | Perfectly pitched to learner level throughout |
 
 #### Logical progression of ideas
 
 | Score | Meaning |
 | --- | --- |
 | 1 | Disjointed or jumps around |
-| 2 | Mostly logical flow |
-| 3 | Clear, coherent structure |
+| 2 | Some order is present, but flow is inconsistent and transitions are abrupt |
+| 3 | Mostly logical flow; structure is understandable with minor clarity issues |
+| 4 | Clear and coherent structure with helpful sequencing and transitions |
+| 5 | Exceptionally clear progression where each idea naturally builds on the previous one |
 
 #### Helpfulness for learning
 
 | Score | Meaning |
 | --- | --- |
 | 1 | Unhelpful or confusing |
-| 2 | Somewhat helpful |
-| 3 | Clearly aids understanding |
+| 2 | Limited learning help; explanations are thin or not actionable |
+| 3 | Somewhat helpful and supports baseline understanding |
+| 4 | Helpful and actionable for most learners |
+| 5 | Highly helpful; clearly accelerates understanding and application |
 
-Concrete examples for each score level will be added per metric. Those examples should be validated with instructional design experts to improve scoring consistency across evaluators.
+Concrete examples for each score level will be added per metric. Those examples should be validated with instructional design experts to improve scoring consistency across evaluators. The same score definitions should be reused in human evaluation and in LLM-as-judge prompts.
 
 ## 2. Technical accuracy
 

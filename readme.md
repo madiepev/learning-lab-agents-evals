@@ -27,9 +27,9 @@ Each agent responds to the updated smoke-test prompts. Outputs are stored as age
 Define clear scoring guidance with positive and negative examples so humans score consistently. The rubric includes one binary metric and three instructional design metrics from the app.
 
 - Product name accuracy: correct or incorrect
-- Appropriate level: 1-3
-- Logical progression: 1-3
-- Helpfulness: 1-3
+- Appropriate level: 1-5
+- Logical progression: 1-5
+- Helpfulness: 1-5
 
 ### 4. Rate outputs one by one per agent
 

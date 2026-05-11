@@ -2,7 +2,7 @@
 Compare agent responses to ground truth using an LLM-as-judge.
 
 Reads a results JSONL (query + response + ground_truth), scores each item
-on accuracy, completeness, and tone, and writes a markdown report.
+on instructional design quality and writes a markdown report.
 
 Environment variables:
     GITHUB_TOKEN  – GitHub token with models:read permission
@@ -37,29 +37,65 @@ if not RESULTS_FILE:
 # Helpers
 # ---------------------------------------------------------------------------
 
-JUDGE_SYSTEM_PROMPT = """\
-You are a technical accuracy judge for Microsoft Learn training content.
+RUBRIC_DEFINITIONS = {
+    "appropriate_level": {
+        1: "Too basic or too advanced for the intended learner.",
+        2: "Often mismatched to learner level, with frequent over- or under-explanation.",
+        3: "Mostly on level, with occasional mismatch in depth or assumed prior knowledge.",
+        4: "Well matched to learner level, with only minor gaps in depth or scaffolding.",
+        5: "Perfectly pitched to learner level throughout the response.",
+    },
+    "logical_progression": {
+        1: "Disjointed or jumps around; ideas are hard to follow.",
+        2: "Some order is present, but flow is inconsistent and transitions are abrupt.",
+        3: "Mostly logical flow; structure is understandable with minor clarity issues.",
+        4: "Clear and coherent structure with helpful sequencing and transitions.",
+        5: "Exceptionally clear progression where each idea naturally builds on the previous one.",
+    },
+    "helpfulness": {
+        1: "Unhelpful or confusing for learning.",
+        2: "Limited learning help; explanations are thin or not actionable.",
+        3: "Somewhat helpful and supports baseline understanding.",
+        4: "Helpful and actionable for most learners.",
+        5: "Highly helpful; clearly accelerates understanding and application.",
+    },
+}
 
-Score the RESPONSE against the GROUND TRUTH on three criteria (1-5 scale):
 
-**Accuracy** — Are product names, service names, and technical facts correct?
-- 1: Wrong product names or incorrect facts
-- 3: Correct core facts, minor omissions
-- 5: Fully correct terminology and facts
+def build_judge_system_prompt() -> str:
+    """Create the system prompt from the repository's evaluation-dimension definitions."""
+    def format_scale(metric: str, title: str) -> str:
+        scale = RUBRIC_DEFINITIONS[metric]
+        return (
+            f"**{title}**\\n"
+            f"- 1: {scale[1]}\\n"
+            f"- 2: {scale[2]}\\n"
+            f"- 3: {scale[3]}\\n"
+            f"- 4: {scale[4]}\\n"
+            f"- 5: {scale[5]}"
+        )
 
-**Completeness** — Does the response cover the key points from the ground truth?
-- 1: Misses key points
-- 3: Covers main points
-- 5: Covers all points from ground truth
+    rubric_text = "\\n\\n".join([
+        format_scale("appropriate_level", "Appropriate level for learner"),
+        format_scale("logical_progression", "Logical progression of ideas"),
+        format_scale("helpfulness", "Helpfulness for learning"),
+    ])
 
-**Tone** — Is the response learner-focused and appropriate for training content?
-- 1: Robotic or off-brand
-- 3: Acceptable but generic
-- 5: Learner-focused, matches training style
+    return (
+        "You are an instructional-design judge for Microsoft Learn training content.\\n\\n"
+        "Score only the RESPONSE while using QUERY and GROUND TRUTH as context for learner intent. "
+        "Use the rubric exactly as defined below, assigning one integer score (1-5) per metric.\\n\\n"
+        f"{rubric_text}\\n\\n"
+        "Scoring rules:\\n"
+        "- Return only integer scores from 1 to 5.\\n"
+        "- Do not use half scores.\\n"
+        "- Favor the lower score when evidence is mixed.\\n"
+        "- Keep notes concise and evidence-based.\\n\\n"
+        "Reply with ONLY a JSON object (no markdown fences):\\n"
+        "{\"appropriate_level\": <int>, \"logical_progression\": <int>, \"helpfulness\": <int>, \"notes\": \"<brief explanation>\"}"
+    )
 
-Reply with ONLY a JSON object (no markdown fences):
-{"accuracy": <int>, "completeness": <int>, "tone": <int>, "notes": "<brief explanation>"}
-"""
+JUDGE_SYSTEM_PROMPT = build_judge_system_prompt()
 
 
 def load_results(path: str) -> list[dict]:
@@ -90,7 +126,12 @@ def parse_judge_response(text: str) -> dict:
     try:
         return json.loads(cleaned)
     except json.JSONDecodeError:
-        return {"accuracy": 1, "completeness": 1, "tone": 1, "notes": f"Failed to parse judge response: {text[:200]}"}
+        return {
+            "appropriate_level": 1,
+            "logical_progression": 1,
+            "helpfulness": 1,
+            "notes": f"Failed to parse judge response: {text[:200]}",
+        }
 
 
 # ---------------------------------------------------------------------------
@@ -143,7 +184,13 @@ def main() -> None:
         score["query"] = query
         score["response"] = response
         score["ground_truth"] = ground_truth
-        score["verdict"] = "PASS" if score.get("accuracy", 0) >= 3 and score.get("completeness", 0) >= 3 else "FAIL"
+        score["verdict"] = (
+            "PASS"
+            if score.get("appropriate_level", 0) >= 3
+            and score.get("logical_progression", 0) >= 3
+            and score.get("helpfulness", 0) >= 3
+            else "FAIL"
+        )
         scores.append(score)
 
     # Aggregate metrics
@@ -151,9 +198,9 @@ def main() -> None:
     pass_count = sum(1 for s in scores if s["verdict"] == "PASS")
     pass_rate = (pass_count / total * 100) if total else 0
 
-    acc_scores = [s["accuracy"] for s in scores]
-    comp_scores = [s["completeness"] for s in scores]
-    tone_scores = [s["tone"] for s in scores]
+    level_scores = [s["appropriate_level"] for s in scores]
+    progression_scores = [s["logical_progression"] for s in scores]
+    helpfulness_scores = [s["helpfulness"] for s in scores]
 
     def avg(lst):
         return sum(lst) / len(lst) if lst else 0
@@ -175,9 +222,9 @@ def main() -> None:
         "",
         "| Criterion | Average | Min | Max |",
         "|-----------|---------|-----|-----|",
-        f"| Accuracy | {avg(acc_scores):.1f} | {min(acc_scores)} | {max(acc_scores)} |",
-        f"| Completeness | {avg(comp_scores):.1f} | {min(comp_scores)} | {max(comp_scores)} |",
-        f"| Tone | {avg(tone_scores):.1f} | {min(tone_scores)} | {max(tone_scores)} |",
+        f"| Appropriate level | {avg(level_scores):.1f} | {min(level_scores)} | {max(level_scores)} |",
+        f"| Logical progression | {avg(progression_scores):.1f} | {min(progression_scores)} | {max(progression_scores)} |",
+        f"| Helpfulness | {avg(helpfulness_scores):.1f} | {min(helpfulness_scores)} | {max(helpfulness_scores)} |",
         "",
         "## Details",
         "",
@@ -189,7 +236,7 @@ def main() -> None:
             "",
             f"- **Ground truth:** {s['ground_truth']}",
             f"- **Response:** {s['response']}",
-            f"- **Scores:** Accuracy: {s['accuracy']} | Completeness: {s['completeness']} | Tone: {s['tone']}",
+            f"- **Scores:** Appropriate level: {s['appropriate_level']} | Logical progression: {s['logical_progression']} | Helpfulness: {s['helpfulness']}",
             f"- **Verdict:** {s['verdict']}",
             f"- **Notes:** {s.get('notes', '')}",
             "",
@@ -201,7 +248,11 @@ def main() -> None:
     # Print summary to stdout for CI
     print(f"\n{'=' * 60}")
     print(f"  {agent_name} — Pass rate: {pass_count}/{total} ({pass_rate:.0f}%)")
-    print(f"  Accuracy: {avg(acc_scores):.1f}  Completeness: {avg(comp_scores):.1f}  Tone: {avg(tone_scores):.1f}")
+    print(
+        "  Appropriate level: "
+        f"{avg(level_scores):.1f}  Logical progression: {avg(progression_scores):.1f}  "
+        f"Helpfulness: {avg(helpfulness_scores):.1f}"
+    )
     print(f"{'=' * 60}")
 
     # Exit with failure if pass rate < 80%
