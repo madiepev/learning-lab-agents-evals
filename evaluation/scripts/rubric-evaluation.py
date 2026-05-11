@@ -1,7 +1,7 @@
 """
-Compare agent responses to ground truth using an LLM-as-judge.
+Compare agent responses using an LLM-as-judge.
 
-Reads a results JSONL (query + response + ground_truth), scores each item
+Reads a results JSONL (query + response), scores each item
 on instructional design quality and writes a markdown report.
 
 Environment variables:
@@ -83,7 +83,7 @@ def build_judge_system_prompt() -> str:
 
     return (
         "You are an instructional-design judge for Microsoft Learn training content.\\n\\n"
-        "Score only the RESPONSE while using QUERY and GROUND TRUTH as context for learner intent. "
+        "Score only the RESPONSE while using QUERY as context for learner intent. "
         "Use the rubric exactly as defined below, assigning one integer score (1-5) per metric.\\n\\n"
         f"{rubric_text}\\n\\n"
         "Scoring rules:\\n"
@@ -157,15 +157,13 @@ def main() -> None:
 
     scores = []
     for i, item in enumerate(results, 1):
-        query = item["query"]
-        response = item["response"]
-        ground_truth = item["ground_truth"]
+        query = item.get("query", "")
+        response = item.get("response", "")
 
         print(f"  [{i}/{len(results)}] Scoring: {query[:70]}...")
 
         user_prompt = (
             f"QUERY: {query}\n\n"
-            f"GROUND TRUTH: {ground_truth}\n\n"
             f"RESPONSE: {response}"
         )
 
@@ -183,7 +181,6 @@ def main() -> None:
         score = parse_judge_response(judge_text)
         score["query"] = query
         score["response"] = response
-        score["ground_truth"] = ground_truth
         score["verdict"] = (
             "PASS"
             if score.get("appropriate_level", 0) >= 3
@@ -234,7 +231,6 @@ def main() -> None:
         lines.extend([
             f"### Q{i}: {s['query']}",
             "",
-            f"- **Ground truth:** {s['ground_truth']}",
             f"- **Response:** {s['response']}",
             f"- **Scores:** Appropriate level: {s['appropriate_level']} | Logical progression: {s['logical_progression']} | Helpfulness: {s['helpfulness']}",
             f"- **Verdict:** {s['verdict']}",
