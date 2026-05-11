@@ -10,7 +10,7 @@ on:
       results_file:
         description: "Existing results JSONL to score instead of generating new responses. Leave empty to run the agent first."
         required: false
-        default: ""
+        default: "evaluation/data/technical-accuracy-results/smoke-test-results-learn-unit-writer.jsonl"
       test_file:
         description: "Path to test JSONL"
         required: false
