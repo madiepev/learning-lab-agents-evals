@@ -1,6 +1,6 @@
 # Smoke Test Report: learn-unit-writer
 
-**Date:** 2026-05-07
+**Date:** 2026-05-11
 **Test file:** smoke-test.jsonl
 **Total questions:** 11
 **Pass rate:** 11/11 (100%)
@@ -9,9 +9,9 @@
 
 | Criterion | Average | Min | Max |
 |-----------|---------|-----|-----|
-| Accuracy | 4.5 | 3 | 5 |
-| Completeness | 4.7 | 3 | 5 |
-| Tone | 5.0 | 5 | 5 |
+| Appropriate level | 5.0 | 5 | 5 |
+| Logical progression | 5.0 | 5 | 5 |
+| Helpfulness | 4.8 | 4 | 5 |
 
 ## Details
 
@@ -32,9 +32,9 @@
 [Azure AI Studio documentation](https://learn.microsoft.com/en-us/azure/ai-studio/overview)
 
 If you need guidance on getting started or specific agent scenarios, let me know!
-- **Scores:** Accuracy: 3 | Completeness: 3 | Tone: 5
+- **Scores:** Appropriate level: 5 | Logical progression: 5 | Helpfulness: 4
 - **Verdict:** PASS
-- **Notes:** The response incorrectly names Azure AI Studio as the platform, while the ground truth specifies Microsoft Foundry. The technical details about Azure AI Studio are accurate, but the main point (the correct platform) is missed. The tone is learner-focused and appropriate.
+- **Notes:** Response is well pitched for learners, with clear structure and actionable details. However, it recommends Azure AI Studio instead of Microsoft Foundry, which is the ground truth answer, so helpfulness is slightly reduced.
 
 ### Q2: What is the Azure service that provides vision, speech, language, and decision AI capabilities?
 
@@ -50,9 +50,9 @@ Azure Cognitive Services is a collection of AI services and APIs that enable dev
 
 You can learn more about Azure Cognitive Services here:  
 [Azure Cognitive Services documentation](https://learn.microsoft.com/en-us/azure/cognitive-services/)
-- **Scores:** Accuracy: 4 | Completeness: 5 | Tone: 5
+- **Scores:** Appropriate level: 5 | Logical progression: 5 | Helpfulness: 5
 - **Verdict:** PASS
-- **Notes:** The response uses 'Azure Cognitive Services' instead of 'Azure AI Services', which is the updated branding. However, it correctly describes the capabilities and categories, and provides a learner-focused explanation. Completeness and tone are excellent, but accuracy is slightly reduced due to outdated terminology.
+- **Notes:** Response is perfectly pitched for the learner, clearly explains Azure Cognitive Services, categorizes capabilities, and provides actionable links. Logical flow and helpfulness are excellent.
 
 ### Q3: Which Azure service enables full-text search, semantic search, and vector search over enterprise content?
 
@@ -74,9 +74,9 @@ You can learn more about Azure Cognitive Services here:
 - [Azure AI Search documentation](https://learn.microsoft.com/en-us/azure/search/)
 - [Semantic and vector search in Azure AI Search](https://learn.microsoft.com/en-us/azure/search/semantic-search-overview)
 - [Vector search in Azure AI Search](https://learn.microsoft.com/en-us/azure/search/vector-search-overview)
-- **Scores:** Accuracy: 5 | Completeness: 5 | Tone: 5
+- **Scores:** Appropriate level: 5 | Logical progression: 5 | Helpfulness: 5
 - **Verdict:** PASS
-- **Notes:** The response uses the correct product name (Azure AI Search), accurately describes its capabilities (full-text, semantic, and vector search), and provides additional relevant details and resources. The tone is learner-focused and clear, matching training content style.
+- **Notes:** Response is perfectly pitched for the learner, with clear structure and progression. It provides concise definitions, key features, and actionable links, making it highly helpful for understanding and application.
 
 ### Q4: What is the Microsoft unified SaaS analytics platform that brings together data engineering, data warehousing, and business intelligence?
 
@@ -94,9 +94,9 @@ You can learn more about Azure Cognitive Services here:
 **Learn more:**  
 - [Microsoft Fabric documentation](https://learn.microsoft.com/en-us/fabric/)
 - [What is Microsoft Fabric?](https://learn.microsoft.com/en-us/fabric/get-started/overview/)
-- **Scores:** Accuracy: 5 | Completeness: 5 | Tone: 5
+- **Scores:** Appropriate level: 5 | Logical progression: 5 | Helpfulness: 5
 - **Verdict:** PASS
-- **Notes:** The response correctly identifies Microsoft Fabric as the unified SaaS analytics platform and expands on its features, including integration of data engineering, data warehousing, data science, real-time analytics, and business intelligence. It uses accurate terminology and provides helpful links, matching the learner-focused tone of Microsoft training content.
+- **Notes:** Response is perfectly pitched for learners, with clear structure and progression. It directly answers the query, expands with relevant features, and provides actionable links for further learning.
 
 ### Q5: What Azure service uses machine learning to extract text, tables, and key-value pairs from documents?
 
@@ -116,9 +116,9 @@ You can use pre-built models for common document types or train custom models fo
 - [Quickstart: Extract information from documents using Azure AI Document Intelligence](https://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/quickstarts/get-started-rest-api)
 
 Let me know if you need details on how to use this service or integrate it into your applications!
-- **Scores:** Accuracy: 5 | Completeness: 5 | Tone: 5
+- **Scores:** Appropriate level: 5 | Logical progression: 5 | Helpfulness: 5
 - **Verdict:** PASS
-- **Notes:** The response correctly identifies Azure AI Document Intelligence, includes its former name, and explains its capabilities in extracting text, tables, and key-value pairs. It provides additional context and helpful links, maintaining a learner-focused tone.
+- **Notes:** Response is perfectly pitched for the learner, with clear structure and actionable details. It names the service, explains its capabilities, and provides links for further learning. No unnecessary complexity or missing context.
 
 ### Q6: What is the low-code tool in Microsoft Power Platform used to build custom business applications?
 
@@ -130,9 +130,9 @@ Let me know if you need details on how to use this service or integrate it into 
 **Learn more:**  
 - [Power Apps documentation](https://learn.microsoft.com/power-apps/)
 - [Introduction to Power Apps](https://learn.microsoft.com/power-apps/getting-started)
-- **Scores:** Accuracy: 5 | Completeness: 5 | Tone: 5
+- **Scores:** Appropriate level: 5 | Logical progression: 5 | Helpfulness: 5
 - **Verdict:** PASS
-- **Notes:** The response correctly identifies Power Apps as the low-code tool in Microsoft Power Platform for building custom business applications. It expands on the features, integration, and usability, covering all key points from the ground truth. The tone is learner-focused and includes helpful links for further learning.
+- **Notes:** Response is perfectly pitched for learners, clearly identifies Power Apps, and provides concise yet thorough explanation. Logical flow from identification to features and integration. Helpful links support further learning.
 
 ### Q7: What is the Microsoft low-code tool for building and publishing AI-powered chatbots and copilots?
 
@@ -153,9 +153,9 @@ Let me know if you need details on how to use this service or integrate it into 
 - [Overview of Copilot Studio](https://learn.microsoft.com/en-us/copilot-studio/overview)
 
 If you need guidance on how to use Copilot Studio or want to build a chatbot/copilot, let me know!
-- **Scores:** Accuracy: 5 | Completeness: 5 | Tone: 5
+- **Scores:** Appropriate level: 5 | Logical progression: 5 | Helpfulness: 5
 - **Verdict:** PASS
-- **Notes:** The response correctly identifies Microsoft Copilot Studio as the low-code tool, provides its former name, and elaborates on its features and integration. The tone is learner-focused and supportive, matching training content style. All key points from the ground truth are covered.
+- **Notes:** Response is perfectly pitched for the learner, with clear structure and logical flow. It provides the correct answer, context, key features, and links for further learning, making it highly helpful and actionable.
 
 ### Q8: Which Azure service provides NLP features such as sentiment analysis, named entity recognition, and conversational language understanding?
 
@@ -177,9 +177,9 @@ You can learn more about its capabilities in the official documentation:
 - [Get started with natural language processing in Azure](https://learn.microsoft.com/training/modules/get-started-language-azure/)
 
 This service is designed for developers, AI engineers, and data scientists to integrate advanced NLP features into applications.
-- **Scores:** Accuracy: 5 | Completeness: 5 | Tone: 5
+- **Scores:** Appropriate level: 5 | Logical progression: 5 | Helpfulness: 5
 - **Verdict:** PASS
-- **Notes:** The response correctly identifies Azure AI Language as the service, lists all relevant NLP features (including those in the ground truth), and provides additional context and resources. The tone is learner-focused and appropriate for training content.
+- **Notes:** Response is perfectly pitched for the learner, with clear structure and actionable links. It directly answers the question, lists relevant features, and provides context for intended users.
 
 ### Q9: What Azure service provides image analysis, optical character recognition, and spatial analysis capabilities?
 
@@ -197,9 +197,9 @@ This service is designed for developers, AI engineers, and data scientists to in
 - [Spatial Analysis overview](https://learn.microsoft.com/en-us/azure/ai-services/computer-vision/concept-spatial-analysis)
 
 If you need details on how to implement these features or want code samples, let me know!
-- **Scores:** Accuracy: 3 | Completeness: 4 | Tone: 5
+- **Scores:** Appropriate level: 5 | Logical progression: 5 | Helpfulness: 4
 - **Verdict:** PASS
-- **Notes:** The response uses 'Azure Computer Vision' instead of the updated 'Azure AI Vision' name, which is the current branding per ground truth. It covers all key features (image analysis, OCR, spatial analysis) and provides helpful, learner-focused explanations and links. Minor omission: does not mention face detection, which is listed in the ground truth.
+- **Notes:** Response is well-pitched for learners, with clear structure and actionable details. However, it uses 'Azure Computer Vision' instead of the more current 'Azure AI Vision' as in the ground truth, which may cause minor confusion. Otherwise, the explanation is thorough and helpful.
 
 ### Q10: How is business intelligence and reporting integrated in Microsoft Fabric?
 
@@ -248,9 +248,9 @@ If you need details on how to implement these features or want code samples, let
 - [Direct Lake mode in Power BI](https://learn.microsoft.com/en-us/fabric/power-bi/direct-lake-mode/)
 
 Let me know if you want a deeper technical walkthrough, a comparison with legacy BI solutions, or guidance on implementing BI in Fabric for your organization!
-- **Scores:** Accuracy: 5 | Completeness: 5 | Tone: 5
+- **Scores:** Appropriate level: 5 | Logical progression: 5 | Helpfulness: 5
 - **Verdict:** PASS
-- **Notes:** The response accurately identifies Power BI as the integrated business intelligence and reporting tool in Microsoft Fabric, and explains its role in the unified analytics platform. It covers all key points from the ground truth, including coexistence with data engineering and data science workloads, and expands with relevant details. The tone is learner-focused, clear, and appropriate for training content.
+- **Notes:** The response is perfectly pitched for the learner, with clear structure and logical flow. It covers Power BI's integration in Fabric, explains supporting components, and provides actionable details and resources. The answer is highly helpful and accelerates understanding.
 
 ### Q11: What are the core workloads integrated within Microsoft Fabric that an analytics engineer works with daily?
 
@@ -304,6 +304,6 @@ Let me know if you want a deeper technical walkthrough, a comparison with legacy
 - [Power BI in Microsoft Fabric](https://learn.microsoft.com/en-us/fabric/power-bi/overview)
 
 Let me know if you’d like a deeper dive into any specific workload or how they interact!
-- **Scores:** Accuracy: 5 | Completeness: 5 | Tone: 5
+- **Scores:** Appropriate level: 5 | Logical progression: 5 | Helpfulness: 5
 - **Verdict:** PASS
-- **Notes:** The response accurately names all core workloads (Data Engineering, Data Warehouse, Data Integration, Real-Time Analytics, Power BI) and describes their roles, matching the ground truth. It also references OneLake implicitly via Lakehouse and provides learner-focused explanations, summary tables, and links, making it comprehensive and appropriate for training content.
+- **Notes:** Response is perfectly pitched for analytics engineers, with clear structure and logical sequencing. It covers all core workloads from the ground truth, provides actionable descriptions, and includes a summary table and links for further learning. Highly helpful and easy to follow.
