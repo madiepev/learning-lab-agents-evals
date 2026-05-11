@@ -7,6 +7,10 @@ on:
         description: "Agent to evaluate (e.g. agents/learn-module-writer.agent.md). Ignored when run_all is true."
         required: false
         default: "agents/learn-unit-writer.agent.md"
+      results_file:
+        description: "Existing results JSONL to score instead of generating new responses. Leave empty to run the agent first."
+        required: false
+        default: ""
       test_file:
         description: "Path to test JSONL"
         required: false
@@ -46,7 +50,7 @@ jobs:
 
       # --- Single agent mode ---
       - name: Generate responses (single agent)
-        if: ${{ github.event.inputs.run_all != 'true' }}
+        if: ${{ github.event.inputs.run_all != 'true' && github.event.inputs.results_file == '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MODEL_OVERRIDE: ${{ github.event.inputs.model_override }}
@@ -57,6 +61,10 @@ jobs:
           export RESULTS_FILE="evaluation/data/technical-accuracy-results/smoke-test-results-${AGENT_NAME}.jsonl"
           python evaluation/scripts/run_eval_agentic.py
           echo "RESULTS_FILE=${RESULTS_FILE}" >> "$GITHUB_ENV"
+
+      - name: Use existing results file
+        if: ${{ github.event.inputs.run_all != 'true' && github.event.inputs.results_file != '' }}
+        run: echo "RESULTS_FILE=${{ github.event.inputs.results_file }}" >> "$GITHUB_ENV"
 
       - name: Score responses with rubric (single agent)
         if: ${{ github.event.inputs.run_all != 'true' }}

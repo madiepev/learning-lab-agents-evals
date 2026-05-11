@@ -46,6 +46,7 @@ RESULTS_FILE = os.environ.get("RESULTS_FILE")
 MODEL_OVERRIDE = os.environ.get("MODEL_OVERRIDE")
 MCP_ENDPOINT = os.environ.get("MCP_ENDPOINT", "https://learn.microsoft.com/api/mcp")
 MAX_TOOL_ROUNDS = int(os.environ.get("MAX_TOOL_ROUNDS", "10"))
+MODEL_CALL_RETRIES = int(os.environ.get("MODEL_CALL_RETRIES", "3"))
 
 if not GITHUB_TOKEN:
     print("ERROR: GITHUB_TOKEN is not set.")
@@ -151,6 +152,23 @@ async def run_agent_query(
         {"role": "user", "content": query},
     ]
 
+    async def create_completion(**kwargs):
+        """Call the model with a small retry loop for transient upstream failures."""
+        last_error = None
+        for attempt in range(1, MODEL_CALL_RETRIES + 1):
+            try:
+                return client.chat.completions.create(**kwargs)
+            except Exception as exc:  # noqa: BLE001 - retry transient upstream failures
+                last_error = exc
+                if attempt >= MODEL_CALL_RETRIES:
+                    raise
+                wait_seconds = 2 ** (attempt - 1)
+                print(f"    Model call failed on attempt {attempt}/{MODEL_CALL_RETRIES}: {exc}")
+                print(f"    Retrying in {wait_seconds}s...")
+                await asyncio.sleep(wait_seconds)
+
+        raise last_error  # pragma: no cover - defensive guard
+
     for round_num in range(MAX_TOOL_ROUNDS):
         kwargs = {
             "model": model,
@@ -161,7 +179,7 @@ async def run_agent_query(
         if openai_tools:
             kwargs["tools"] = openai_tools
 
-        response = client.chat.completions.create(**kwargs)
+        response = await create_completion(**kwargs)
         choice = response.choices[0]
 
         # If the model is done (no tool calls), return the text
@@ -210,7 +228,7 @@ async def run_agent_query(
             })
 
     # Max rounds reached — return whatever we have
-    last_response = client.chat.completions.create(
+    last_response = await create_completion(
         model=model,
         messages=messages,
         temperature=0.2,
@@ -265,6 +283,8 @@ async def main() -> None:
     client = OpenAI(
         base_url="https://models.github.ai/inference",
         api_key=GITHUB_TOKEN,
+        timeout=120.0,
+        max_retries=5,
     )
 
     # Determine if we need MCP
