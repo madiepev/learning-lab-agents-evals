@@ -25,8 +25,8 @@ from datetime import datetime
 
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 INPUT_FILE = os.environ.get("INPUT_FILE")
-MODEL_NAME = os.environ.get("MODEL_NAME", "openai/gpt-4o")
-OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "reports")
+MODEL_NAME = os.environ.get("MODEL_NAME") or "openai/gpt-4o"
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR") or "reports"
 
 if not GITHUB_TOKEN:
     print("ERROR: GITHUB_TOKEN is not set.")
