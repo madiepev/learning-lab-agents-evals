@@ -19,6 +19,10 @@ on:
         description: "Upload results to Microsoft Foundry for cloud evaluation"
         type: boolean
         default: false
+      run_similarity:
+        description: "Run similarity scoring (cosine, token F1, BERTScore) on results. Adds several minutes and downloads ~1.4 GB of model weights."
+        type: boolean
+        default: false
       model_override:
         description: "Override model (leave empty to use default openai/gpt-4.1)"
         required: false
@@ -40,9 +44,17 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+          cache: pip
 
       - name: Install dependencies
         run: pip install -r requirements.txt
+
+      - name: Cache HuggingFace models
+        if: ${{ github.event.inputs.run_similarity == 'true' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-models-bertscore-roberta-large-minilm-v1
 
       # --- Single agent mode ---
       - name: Generate responses (single agent)
@@ -65,6 +77,12 @@ jobs:
           RESULTS_FILE: ${{ env.RESULTS_FILE }}
         run: python evaluation/scripts/compare.py
 
+      - name: Score similarity (single agent)
+        if: ${{ github.event.inputs.run_all != 'true' && github.event.inputs.run_similarity == 'true' }}
+        env:
+          RESULTS_FILE: ${{ env.RESULTS_FILE }}
+        run: python evaluation/scripts/compare_similarity.py "$RESULTS_FILE"
+
       # --- Batch mode: all agents ---
       - name: Evaluate all agents
         if: ${{ github.event.inputs.run_all == 'true' }}
@@ -72,6 +90,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MODEL_OVERRIDE: ${{ github.event.inputs.model_override }}
           TEST_FILE: ${{ github.event.inputs.test_file }}
+          RUN_SIMILARITY: ${{ github.event.inputs.run_similarity }}
         run: |
           FAILED=0
           for AGENT_FILE in agents/*.agent.md; do
@@ -93,6 +112,10 @@ jobs:
 
             python evaluation/scripts/run_eval_agentic.py
             python evaluation/scripts/compare.py || FAILED=1
+
+            if [ "$RUN_SIMILARITY" = "true" ]; then
+              python evaluation/scripts/compare_similarity.py "$RESULTS_FILE" || true
+            fi
           done
 
           if [ "$FAILED" -eq 1 ]; then
