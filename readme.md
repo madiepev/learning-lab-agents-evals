@@ -59,6 +59,90 @@ Publish comparable views for each agent: product-name accuracy, instructional de
 - Human and auto comparison
 - Rubric refinement loop
 
+---
+
+## Cognitive Load Rubric Evaluation
+
+A specialized evaluation workflow using LLM-as-judge to score Microsoft Learn units against a Cognitive Load Theory-based rubric.
+
+### Rubric overview
+
+The cognitive load rubric evaluates units on 6 criteria (0-2 scale, max 12 points):
+
+1. **Task-first opening** - Does it start with a scenario/task before introducing concepts?
+2. **Prior knowledge bridge** - Does it connect new concepts to existing knowledge?
+3. **Sequential complexity** - Are concepts introduced one at a time?
+4. **Specificity over coverage** - Does it use concrete examples vs. feature lists? Includes visual integration assessment.
+5. **Reasoning transparency** - Do examples show *why* choices are made?
+6. **Schema-building activation** - Does it include in-body reflection prompts AND application-oriented assessment?
+
+### Score bands
+
+- **10-12**: Strong (minor improvements only)
+- **7-9**: Acceptable (targeted revision needed)
+- **4-6**: Needs revision (significant rewrite)
+- **0-3**: Failing (full rewrite)
+
+### Running evaluations
+
+#### Local execution
+
+```bash
+# Set required environment variables
+export GITHUB_TOKEN=your_token_here
+export INPUT_FILE=evaluation/data/instructional-design-results/smoke-test-results-learn-unit-writer.jsonl
+
+# Optional: override model (defaults to openai/gpt-4o)
+export MODEL_NAME=openai/gpt-4o
+
+# Optional: specify output directory (defaults to reports)
+export OUTPUT_DIR=reports
+
+# Run evaluation
+python evaluation/scripts/cognitive-load-rubric.py
+```
+
+**Examples:**
+
+```bash
+# Evaluate smoke test results for a specific agent
+export INPUT_FILE=evaluation/data/instructional-design-results/smoke-test-results-learn-unit-writer.jsonl
+python evaluation/scripts/cognitive-load-rubric.py
+
+# Evaluate all introductory units
+export INPUT_FILE=introductory-units
+python evaluation/scripts/cognitive-load-rubric.py
+
+# Evaluate revised units only
+export INPUT_FILE=introductory-units/revised
+python evaluation/scripts/cognitive-load-rubric.py
+```
+
+#### GitHub Actions
+
+Use the "Run Cognitive Load Evaluation" workflow:
+
+1. Go to Actions → Run Cognitive Load Evaluation
+2. Select input source:
+   - **smoke-test-results**: Evaluate smoke test results (specify agent name)
+   - **introductory-units**: Evaluate all introductory units
+   - **revised-units**: Evaluate revised units only
+   - **custom-path**: Provide custom file/directory path
+3. Optionally check "Evaluate ALL agent smoke test results" to batch process all agents
+4. Reports are uploaded as artifacts and optionally committed to the repo
+
+### Output
+
+Reports are saved to `reports/` with format: `rubric-evaluation-{source}-{timestamp}.md`
+
+Each report includes:
+- Quality band distribution
+- Average scores per criterion
+- Detailed per-unit breakdown with justifications
+- Flagged items requiring human review (e.g., visual integration)
+
+---
+
 ## Repository structure
 
 ```text
