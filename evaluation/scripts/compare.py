@@ -23,7 +23,7 @@ from openai import OpenAI
 
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 RESULTS_FILE = os.environ.get("RESULTS_FILE")
-MODEL_NAME = os.environ.get("MODEL_NAME", "openai/gpt-4.1")
+MODEL_NAME = os.environ.get("MODEL_NAME") or "openai/gpt-4.1"
 
 if not GITHUB_TOKEN:
     print("ERROR: GITHUB_TOKEN is not set.")
