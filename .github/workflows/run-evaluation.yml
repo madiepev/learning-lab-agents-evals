@@ -90,6 +90,9 @@ jobs:
         if: ${{ github.event.inputs.run_all != 'true' && github.event.inputs.run_similarity == 'true' }}
         env:
           RESULTS_FILE: ${{ env.RESULTS_FILE }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          TRANSFORMERS_VERBOSITY: error
+          HF_HUB_DISABLE_PROGRESS_BARS: "1"
         run: python evaluation/scripts/compare_similarity.py "$RESULTS_FILE"
 
       # --- Batch mode: all agents ---
@@ -100,6 +103,9 @@ jobs:
           MODEL_OVERRIDE: ${{ github.event.inputs.model_override }}
           TEST_FILE: ${{ github.event.inputs.test_file }}
           RUN_SIMILARITY: ${{ github.event.inputs.run_similarity }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          TRANSFORMERS_VERBOSITY: error
+          HF_HUB_DISABLE_PROGRESS_BARS: "1"
         run: |
           FAILED=0
           for AGENT_FILE in agents/*.agent.md; do
