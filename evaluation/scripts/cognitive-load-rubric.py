@@ -258,15 +258,63 @@ def load_units(path: str) -> list[dict]:
     units = []
     
     if input_path.is_file() and input_path.suffix == '.jsonl':
-        # Load from JSONL
+        # Load from JSONL and save to markdown files for reference
+        source_name = input_path.stem  # e.g., "smoke-test-results-learn-unit-writer"
+        units_dir = Path("evaluation/data/evaluated-units") / source_name
+        units_dir.mkdir(parents=True, exist_ok=True)
+        
         with open(input_path, encoding="utf-8") as f:
-            for line in f:
+            for idx, line in enumerate(f, 1):
                 line = line.strip()
                 if line:
                     item = json.loads(line)
+                    
+                    # Extract title from query or use index
+                    query = item.get("query", "")
+                    response = item.get("response", "")
+                    
+                    # Try to extract a meaningful title from the response
+                    title = f"unit-{idx}"
+                    if "# " in response:
+                        # Try to find the first markdown heading
+                        for line_text in response.split("\n"):
+                            if line_text.startswith("# "):
+                                title = line_text.replace("# ", "").strip()
+                                break
+                    elif "**Title:**" in response or "Unit Title" in response:
+                        # Try to extract from metadata
+                        for line_text in response.split("\n"):
+                            if "**Title:**" in line_text:
+                                title = line_text.split("**Title:**")[1].strip()
+                                break
+                            elif "Unit Title" in line_text and "**" in line_text:
+                                parts = line_text.split("**")
+                                if len(parts) >= 2:
+                                    title = parts[1].strip()
+                                    break
+                    
+                    # Sanitize title for filename
+                    safe_title = "".join(c if c.isalnum() or c in " -_" else "" for c in title)
+                    safe_title = safe_title.strip().replace(" ", "-")[:100]
+                    if not safe_title:
+                        safe_title = f"unit-{idx}"
+                    
+                    # Save unit content to markdown file
+                    unit_file = units_dir / f"{safe_title}.md"
+                    
+                    # Create file with query and response
+                    file_content = f"# Evaluated Unit\n\n"
+                    file_content += f"**Source:** {input_path.name}\n\n"
+                    file_content += f"**Query:**\n```\n{query}\n```\n\n"
+                    file_content += f"**Response:**\n\n{response}\n"
+                    
+                    unit_file.write_text(file_content, encoding="utf-8")
+                    
                     units.append({
-                        "title": item.get("title", item.get("query", "Untitled")),
-                        "content": item.get("content", item.get("response", "")),
+                        "title": title,
+                        "content": response,
+                        "file_path": str(unit_file),
+                        "query": query,
                     })
     elif input_path.is_dir():
         # Load all .md files from directory
@@ -473,6 +521,23 @@ def write_report(results: list[dict], output_path: Path) -> None:
         lines.extend([
             f"### {i}. {title}",
             "",
+        ])
+        
+        # Add link to source file if available
+        if "file_path" in result:
+            # Make path relative from reports/ directory
+            file_path = Path(result["file_path"])
+            try:
+                # Get relative path from reports directory
+                rel_path = file_path.relative_to(Path.cwd())
+                lines.append(f"📄 **[View Unit Text](../{rel_path})**")
+                lines.append("")
+            except ValueError:
+                # If can't make relative, use absolute
+                lines.append(f"**Source:** `{result['file_path']}`")
+                lines.append("")
+        
+        lines.extend([
             f"**Total Score:** {total}/12 — **{band}**",
             "",
             f"**Overall Assessment:** {overall}",
@@ -488,10 +553,6 @@ def write_report(results: list[dict], output_path: Path) -> None:
             label = criterion_labels.get(criterion, criterion)
             lines.append(f"- **{label}:** {score}/2")
             lines.append(f"  - {justification}")
-            lines.append("")
-        
-        if "file_path" in result:
-            lines.append(f"**Source:** `{result['file_path']}`")
             lines.append("")
         
         lines.append("---")
