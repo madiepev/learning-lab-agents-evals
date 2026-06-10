@@ -519,7 +519,7 @@ def main() -> None:
     
     # Set up GitHub Models client (OpenAI-compatible)
     client = OpenAI(
-        base_url="https://models.inference.ai.azure.com",
+        base_url="https://models.github.ai/inference",
         api_key=GITHUB_TOKEN,
     )
     
