@@ -4,9 +4,18 @@ on:
   workflow_dispatch:
     inputs:
       agent_file:
-        description: "Agent to evaluate (e.g. agents/learn-module-writer.agent.md). Ignored when run_all is true."
+        description: "Agent to evaluate. Ignored when run_all is true."
         required: false
+        type: choice
         default: "agents/learn-unit-writer.agent.md"
+        options:
+          - "agents/drift-detector.agent.md"
+          - "agents/freshness-report.agent.md"
+          - "agents/learn-content-planner.agent.md"
+          - "agents/learn-module-writer.agent.md"
+          - "agents/learn-unit-writer.agent.md"
+          - "agents/light-unit-writer.agent.md"
+          - "agents/skilling-session-pptx.agent.md"
       test_file:
         description: "Path to test JSONL"
         required: false
